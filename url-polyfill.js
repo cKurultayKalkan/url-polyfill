@@ -38,11 +38,26 @@
    * encodeURIComponent() produces the same result except encoding spaces as `%20` instead of `+`.
    */
   var serializeParam = function(value) {
-    return encodeURIComponent(value).replace(/%20/g, '+');
+    var replace = {
+      '!': '%21',
+      "'": '%27',
+      '(': '%28',
+      ')': '%29',
+      '~': '%7E',
+      '%20': '+',
+      '%00': '\x00'
+    };
+    return encodeURIComponent(value).replace(/[!'\(\)~]|%20|%00/g, function(match) {
+      return replace[match];
+    });
   };
 
   var deserializeParam = function(value) {
-    return decodeURIComponent(String(value).replace(/\+/g, ' '));
+    return value
+      .replace(/[ +]/g, '%20')
+      .replace(/(%[a-f0-9]{2})+/ig, function(match) {
+        return decodeURIComponent(match);
+      });
   };
 
   var polyfillURLSearchParams = function() {
